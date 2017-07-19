@@ -35,11 +35,10 @@
             var newItemNumber = new Date().getTime().toString()
             var newItemName = $('#newItemName').val()
             var newItemCost = $('#newItemCost').val()
-            if(newItemCost == '') {
+            if(newItemCost == '' || isNaN(newItemCost)) {
                 alert('你的輸入有Bug！請確認是否填入正確的數字格式')
+                return 
             }
-            // console.log(newItemName, newItemCost)
-
             $("#costList").append("\
             <div class='row costItem' id='" + newItemNumber + "'>\
                 <div id='itemName' class=\"col colColor \">"+ newItemName + "</div>\
