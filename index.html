@@ -1,0 +1,236 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/tether.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.js"></script>
+<link type="text/css" rel="stylesheet" href="css/jquery-ui.css"/>
+
+    <title>Today Cost(單機使用)</title>
+    <style>
+        body {
+            background-color: grey
+        }
+        .colColor {
+            background-color: #666666;
+            color: #ffffff;
+            border-width: 3;
+            border-style: solid;
+            
+            border-color: #0ff;
+        }
+    </style>
+    <script>
+        // 目前正在編輯的事項編號
+        var editItemNumber = 0
+
+        // 事項&花費組合而成的 Json
+        var costItemsJson = {}
+
+        // 創建一個新的事項添加到清單結尾
+        function createNewCost(){
+            var newItemNumber = new Date().getTime().toString()
+            var newItemName = $('#newItemName').val()
+            var newItemCost = $('#newItemCost').val()
+            if(newItemCost == '') {
+                alert('你的輸入有Bug！請確認是否填入正確的數字格式')
+            }
+            // console.log(newItemName, newItemCost)
+
+            $("#costList").append("\
+            <div class='row costItem' id='" + newItemNumber + "'>\
+                <div id='itemName' class=\"col colColor \">"+ newItemName + "</div>\
+                <div id='itemCost' class=\"col colColor itemCost\">"+ newItemCost + "</div>\
+                <div class=\"col colColor\">\
+                <button class='btn btn-primary' onclick='editItem(" + newItemNumber + ")'>編輯</button>\
+                <button class='btn btn-Danger' onclick='deleteItem(" + newItemNumber + ")'>刪除</button>\
+                </div>\
+            </div>");
+            
+            $('#costList').change();
+            // 某個事項新增成功，重新計算Cost總和
+            calcuateCost()
+        }
+        // 顯示該事項的 編輯區塊(平常編輯區塊為隱藏狀態)
+        function editItem(itemNum) {
+            var itemName = $('#'+itemNum.toString()).children()[0].innerText
+            var itemCost = $('#'+itemNum.toString()).children()[1].innerText
+            editItemNumber = itemNum
+            console.log('itemName:', itemName)
+            console.log('itemCost:', itemCost)
+            $('#dialogName').attr('value', itemName)
+            $('#dialogCost').attr('value', itemCost)
+
+            $('#dialog').dialog('open')
+            $('#costList').change();
+        }
+        // 按下某個事項的編輯區塊中 '修改!'按鈕，將原本的事項內容更新為編輯區塊填入的內容
+        function realEditItem() {
+            var itemName = $("#dialogName").val()
+            var itemCost = $('#dialogCost').val()
+            if(itemCost == '') {
+                alert('你的輸入有Bug！請確認是否填入正確的數字格式')
+                return false
+            }
+            console.log(itemName, itemCost)
+            $('#'+editItemNumber.toString()).find('#itemName').text(itemName)
+            $('#'+editItemNumber.toString()).find('#itemCost').text(itemCost)
+            // 修改完成後，直接退出視窗
+            $('#dialog').dialog('close')
+            console.log('成功修改')
+            // 某個事項修改成功，重新計算Cost總和
+            calcuateCost()
+        }
+        // 刪除某個事項的 函數 
+        function deleteItem(itemNum) {
+            $('#dialog').dialog('close')
+            $('#'+itemNum.toString()).remove()
+            // 某個事項刪除成功，重新計算Cost總和
+            calcuateCost()
+        }
+
+        // 計算所有事項的花費總和，並印在costSum這個標籤上
+        function calcuateCost() {
+            var costSum = 0
+
+            var costItemList = $('.costItem')
+            costItemsJson = {}
+            for(var i = 0; i <costItemList.length; i++) {
+                var itemName = (costItemList.find('#itemName')[i].textContent)
+                var itemCost = parseFloat(costItemList.find('#itemCost')[i].textContent)
+                costSum += itemCost
+                costItemsJson[i] = {'item': itemName, 'cost': itemCost}
+            }
+            $('#costSum').text('今日Cost合計：'+costSum )
+            // 將costItemsJson轉換成JSON字串，之後會拿來當作JSON檔
+            console.log(JSON.stringify(costItemsJson));
+        }
+        
+        // 提供客戶端 事項列表的JSON檔
+        function downloadJSON() {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(costItemsJson)));
+            element.setAttribute('download', '今日cost.json');
+            
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        
+        // 以JSON格式的文件檔匯入 事項列表
+        function importCostListByJSON() {
+            if(confirm('以JSON匯入檔案，將會導致當前的列表被覆蓋\n是否繼續？')){
+                // 確定匯入事項列表，先將舊有的列表內容刪除掉！
+                file = this.files[0];
+                var fReader = new FileReader();           
+                fReader.onload = function (event) {
+                    $('.costItem').remove()
+                    costItems = JSON.parse(event.target.result);
+                    costItemsLength = Object.keys(costItems).length
+                    console.log('爽', costItems)
+                    for(var i = 0; i <costItemsLength; i++) {
+                        var newItemNumber = new Date().getTime().toString()
+                        var newItemName = costItems[i].item
+                        var newItemCost = costItems[i].cost
+                        console.log(newItemName, newItemCost)
+                        $("#costList").append("\
+                        <div class='row costItem' id='" + newItemNumber + "'>\
+                            <div id='itemName' class=\"col colColor \">"+ newItemName + "</div>\
+                            <div id='itemCost' class=\"col colColor itemCost\">"+ newItemCost + "</div>\
+                            <div class=\"col colColor\">\
+                            <button class='btn btn-primary' onclick='editItem(" + newItemNumber + ")'>編輯</button>\
+                            <button class='btn btn-Danger' onclick='deleteItem(" + newItemNumber + ")'>刪除</button>\
+                            </div>\
+                        </div>");
+                    }
+
+                    calcuateCost()
+                };
+                fReader.readAsText(file);
+
+                    
+            }
+        }
+
+        
+        $(function() {
+            $( "#dialog" ).dialog({ 
+                autoOpen: false ,
+                // 顯示時，使用分裂重組
+                show: {
+                    effect: "explode",
+                    duration: 300
+                },
+                hide: {
+                    effect: "explode",
+                    duration: 300
+                }
+            });
+        } );
+
+        // 當視窗大小產生變化，將#dialog重新定位到正中央 (當#dialog顯示時，才看得出效果)
+        $(window).resize(function() {
+            $("#dialog").dialog("option", "position", "center");
+        });
+
+        window.onload = function () {
+            document.getElementById('myFile').onchange = importCostListByJSON;
+        };
+
+    </script>
+</head>
+<body>
+    <!-- 編輯項目的區塊 (平時隱藏，當按下事項最右手邊的'編輯'按鈕，便會跳出的浮動視窗)  -->
+    <div id="dialog" style=''>
+        <div class='row'>
+            <div class="col">事項名稱</div>
+            <div class="col"><input type="text" id="dialogName" /></div>
+        </div>
+        <div class="row">
+            <div class="col">花費</div>
+            <div class='col'><input type="number" id="dialogCost" min="0"  /></div>
+        </div>
+        <div class="row">
+            <div class="col"><button onclick="realEditItem()">修改！</button></div>
+        </div>
+    </div>
+
+    <h1 id='costSum'>今日Cost合計：0</h1>
+    <div class="container">
+        <button class="btn btn-Info" onclick="downloadJSON()">下載JSON格式</button>
+
+        <div class="btn btn-success">匯入JSON
+            <input class="btn btn-success" type="file" id="myFile">
+        </div>
+        
+    </div>
+    <div class="container" id="costList">
+        <!--新增項目的區塊-->
+        <div class="row">
+            <div class="col colColor" >
+                <input type="text" id="newItemName" placeholder="輸入事項"></text>
+            </div>
+            <div class="col colColor">
+               <input type="number" id="newItemCost" placeholder="輸入數字"> 
+            </div>
+            <div class="col colColor">
+                <button  onclick="createNewCost()">新增</button>
+            </div>
+        </div>
+
+         <!--項目列表的標頭-->
+        <div class="row">
+            <div class="col colColor">事項</div>
+            <div class="col colColor">花費</div>
+            <div class="col colColor"></div>
+        </div>
+        <!-- 新加入的事項會放在這-->
+        <!-- 新加入的事項會放在這-->
+    </div>
+
+</body>
+</html>
