@@ -55,18 +55,18 @@
         }
         // 顯示該事項的 編輯區塊(平常編輯區塊為隱藏狀態)
         function editItem(itemNum) {
-            var itemName = $('#'+itemNum.toString()).children()[0].innerText
-            var itemCost = $('#'+itemNum.toString()).children()[1].innerText
             editItemNumber = itemNum
+            var itemName = $('#'+editItemNumber.toString()).children()[0].innerText
+            var itemCost = $('#'+editItemNumber.toString()).children()[1].innerText
+            
             console.log('itemName:', itemName)
             console.log('itemCost:', itemCost)
-            $('#dialogName').attr('value', '')
-            $('#dialogCost').attr('value', 0)
-            $('#dialogName').attr('value', itemName)
-            $('#dialogCost').attr('value', parseFloat(itemCost))
-
+            $('#dialog').dialog('close')
+            document.getElementById("dialogName").value = itemName;
+            document.getElementById("dialogCost").value = parseFloat(itemCost);
             $('#dialog').dialog('open')
-            // $('#costList').change();
+
+            console.log('editItem.editItemNumber =', editItemNumber)
         }
         // 按下某個事項的編輯區塊中 '修改!'按鈕，將原本的事項內容更新為編輯區塊填入的內容
         function realEditItem() {
@@ -76,7 +76,10 @@
                 alert('你的輸入有Bug！請確認是否填入正確的數字格式')
                 return false
             }
+            console.log('-------realEditItem()開頭--------')
             console.log(itemName, itemCost)
+            console.log('realEditItem.editItemNumber =', editItemNumber)
+            console.log('-------realEditItem()結尾--------')
             $('#'+editItemNumber.toString()).find('#itemName').text(itemName)
             $('#'+editItemNumber.toString()).find('#itemCost').text(itemCost)
             // 修改完成後，直接退出視窗
@@ -164,7 +167,10 @@
                 // 顯示時，使用分裂重組
                 show: {
                     effect: "explode",
-                    duration: 300
+                    duration: 300,
+                    complete: function() {
+                        
+                    }
                 },
                 hide: {
                     effect: "explode",
@@ -185,7 +191,7 @@
     </script>
 </head>
 <body>
-    <!-- 編輯項目的區塊 (平時隱藏，當按下事項最右手邊的'編輯'按鈕，便會跳出的浮動視窗)  -->
+    <!-- 編輯項目 (平時隱藏，當按下事項最右手邊的'編輯'按鈕，便會跳出的浮動視窗)  -->
     <div id="dialog" style=''>
         <div class='row'>
             <div class="col">事項名稱</div>
@@ -199,7 +205,7 @@
             <div class="col"><button onclick="realEditItem()">修改！</button></div>
         </div>
     </div>
-
+    <!-- 顯示花費總和.下載JSON.上傳JSON檔 -->
     <h1 id='costSum'>今日Cost合計：0</h1>
     <div class="container">
         <button class="btn btn-Info" onclick="downloadJSON()">下載JSON格式</button>
@@ -210,7 +216,7 @@
         
     </div>
     <div class="container" id="costList">
-        <!--新增項目的區塊-->
+        <!--新增項目-->
         <div class="row">
             <div class="col colColor" >
                 <input type="text" id="newItemName" placeholder="輸入事項"></text>
