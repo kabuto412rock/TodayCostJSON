@@ -60,11 +60,13 @@
             editItemNumber = itemNum
             console.log('itemName:', itemName)
             console.log('itemCost:', itemCost)
+            $('#dialogName').attr('value', '')
+            $('#dialogCost').attr('value', 0)
             $('#dialogName').attr('value', itemName)
-            $('#dialogCost').attr('value', itemCost)
+            $('#dialogCost').attr('value', parseFloat(itemCost))
 
             $('#dialog').dialog('open')
-            $('#costList').change();
+            // $('#costList').change();
         }
         // 按下某個事項的編輯區塊中 '修改!'按鈕，將原本的事項內容更新為編輯區塊填入的內容
         function realEditItem() {
