@@ -115,9 +115,11 @@
         
         // 提供客戶端 事項列表的JSON檔
         function downloadJSON() {
+            var today = new Date();
+            var todayStr = today.getYear()+1900 + '-'+ today.getMonth() + '-'+today.getDate();
             var element = document.createElement('a');
             element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(costItemsJson)));
-            element.setAttribute('download', '今日cost.json');
+            element.setAttribute('download', todayStr+'cost.json');
             
             element.style.display = 'none';
             document.body.appendChild(element);
